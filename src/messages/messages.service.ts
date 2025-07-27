@@ -88,4 +88,19 @@ export class MessagesService {
 
         return { message: 'Message deleted successfully' };
     }
+
+    async getMessageStatus() {
+      const users = await this.userRepo.find();
+      const messages = await this.messageRepo.find({ relations: ['sender'] });
+
+      const senderIds = new Set(messages.map((msg) => msg.sender.id));
+      const totalUsers = users.length;
+      const writtenUsers = senderIds.size;
+
+      return {
+        totalUsers,
+        writtenUsers,
+        allWritten: totalUsers === writtenUsers,
+      };
+    }
 }
