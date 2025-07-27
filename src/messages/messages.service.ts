@@ -31,7 +31,6 @@ export class MessagesService {
     return this.messageRepo.save(message);
   }
 
-    // 받은 메시지 목록
     async getReceivedMessages(recipientId: number) {
     return this.messageRepo.find({
         where: { receiver: { id: recipientId } },
@@ -39,7 +38,6 @@ export class MessagesService {
     });
     }
 
-    // 작성한 메시지 목록
     async getWrittenMessages(writerId: number) {
     return this.messageRepo.find({
         where: { sender: { id: writerId } },
@@ -47,7 +45,6 @@ export class MessagesService {
     });
     }
 
-    // 특정 메시지 상세
     async getMessageByUsers(writerId: number, recipientId: number) {
     return this.messageRepo.findOne({
         where: {
@@ -58,7 +55,6 @@ export class MessagesService {
     });
     }
 
-    // 수정 기능
     async updateMessage(writerId: number, recipientId: number, content: string): Promise<Message> {
         const message = await this.messageRepo.findOne({
             where: {
