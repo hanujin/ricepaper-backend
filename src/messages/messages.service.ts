@@ -103,4 +103,34 @@ export class MessagesService {
         allWritten: totalUsers === writtenUsers,
       };
     }
+
+    async hasReceivedAllMessages(receiverId: number): Promise<boolean> {
+      const totalUsers = await this.userRepo.count();
+      const senders = await this.messageRepo
+        .createQueryBuilder('message')
+        .select('message.senderId')
+        .where('message.receiverId = :receiverId', { receiverId })
+        .distinct(true)
+        .getRawMany();
+
+      const senderCount = senders.length;
+
+      return senderCount === totalUsers - 1;
+    }
+
+    // messages.service.ts
+    async checkAllWrittenTo(targetUserId: number): Promise<boolean> {
+      const allUsers = await this.userRepo.find();
+      const senderIds = allUsers.map((u) => u.id).filter((id) => id !== targetUserId);
+
+      const messages = await this.messageRepo.find({
+        where: { receiver: { id: targetUserId } },
+        relations: ['sender'],
+      });
+
+      const actualSenders = new Set(messages.map((msg) => msg.sender.id));
+      return senderIds.every((id) => actualSenders.has(id));
+    }
+
+
 }
