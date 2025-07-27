@@ -31,19 +31,4 @@ export class UsersController {
   getUserById(@Param('id') id: number) {
     return this.usersService.findById(id);
   }
-
-  @Get()
-  async getUsersWithStatus() {
-    const users = await this.usersService.findAll();
-    const userStatuses = await Promise.all(
-      users.map(async (user) => {
-        const allWritten = await this.messagesService.hasReceivedAllMessages(user.id);
-        return {
-          ...user,
-          allWritten,
-        };
-      }),
-    );
-    return userStatuses;
-  }
 }
