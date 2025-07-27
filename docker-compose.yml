@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: postgres      # Nest에서 쓸 계정
+      POSTGRES_PASSWORD: password  # ↑ 비번
+      POSTGRES_DB: ricepaper       # 기본 DB 이름
+    ports:
+      - "5432:5432"                # 호스트에서도 필요하면 그대로 노출
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:
