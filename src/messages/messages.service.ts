@@ -31,7 +31,6 @@ export class MessagesService {
     return this.messageRepo.save(message);
   }
 
-    // 받은 메시지 목록
     async getReceivedMessages(recipientId: number) {
     return this.messageRepo.find({
         where: { receiver: { id: recipientId } },
@@ -39,7 +38,6 @@ export class MessagesService {
     });
     }
 
-    // 작성한 메시지 목록
     async getWrittenMessages(writerId: number) {
     return this.messageRepo.find({
         where: { sender: { id: writerId } },
@@ -47,7 +45,6 @@ export class MessagesService {
     });
     }
 
-    // 특정 메시지 상세
     async getMessageByUsers(writerId: number, recipientId: number) {
     return this.messageRepo.findOne({
         where: {
@@ -58,7 +55,6 @@ export class MessagesService {
     });
     }
 
-    // 수정 기능
     async updateMessage(writerId: number, recipientId: number, content: string): Promise<Message> {
         const message = await this.messageRepo.findOne({
             where: {
@@ -92,4 +88,49 @@ export class MessagesService {
 
         return { message: 'Message deleted successfully' };
     }
+
+    async getMessageStatus() {
+      const users = await this.userRepo.find();
+      const messages = await this.messageRepo.find({ relations: ['sender'] });
+
+      const senderIds = new Set(messages.map((msg) => msg.sender.id));
+      const totalUsers = users.length;
+      const writtenUsers = senderIds.size;
+
+      return {
+        totalUsers,
+        writtenUsers,
+        allWritten: totalUsers === writtenUsers,
+      };
+    }
+
+    async hasReceivedAllMessages(receiverId: number): Promise<boolean> {
+      const totalUsers = await this.userRepo.count();
+      const senders = await this.messageRepo
+        .createQueryBuilder('message')
+        .select('message.senderId')
+        .where('message.receiverId = :receiverId', { receiverId })
+        .distinct(true)
+        .getRawMany();
+
+      const senderCount = senders.length;
+
+      return senderCount === totalUsers - 1;
+    }
+
+    // messages.service.ts
+    async checkAllWrittenTo(targetUserId: number): Promise<boolean> {
+      const allUsers = await this.userRepo.find();
+      const senderIds = allUsers.map((u) => u.id).filter((id) => id !== targetUserId);
+
+      const messages = await this.messageRepo.find({
+        where: { receiver: { id: targetUserId } },
+        relations: ['sender'],
+      });
+
+      const actualSenders = new Set(messages.map((msg) => msg.sender.id));
+      return senderIds.every((id) => actualSenders.has(id));
+    }
+
+
 }

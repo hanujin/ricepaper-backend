@@ -48,4 +48,9 @@ export class MessagesController {
   ) {
     return this.messagesService.deleteMessage(writerId, recipientId);
   }
+
+  @Get('status')
+  async getMessageStatus() {
+    return this.messagesService.getMessageStatus();
+  }
 }
