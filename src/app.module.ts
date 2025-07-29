@@ -24,12 +24,12 @@ import { R2Module } from './r2/r2.module';
       database: process.env.POSTGRES_DB,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
-      ssl: true,
-      extra: {
-      ssl: {
-        rejectUnauthorized: false,
-      },
-      },
+      // ssl: true,
+      // extra: {
+      // ssl: {
+      //   rejectUnauthorized: false,
+      // },
+      // },
     }),
     UsersModule,
     AuthModule,

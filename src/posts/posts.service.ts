@@ -13,7 +13,12 @@ export class PostsService {
   ) {}
 
   async create(dto: CreatePostDto): Promise<Post> {
-    const post = this.postRepo.create(dto);
+    const post = this.postRepo.create({
+      content: dto.content,
+      imageUrl: dto.imageUrl,
+      user: { id: Number(dto.userId) },
+    });
+
     return this.postRepo.save(post);
   }
 
