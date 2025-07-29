@@ -1,8 +1,8 @@
-POSTGRES_HOST=dpg-d23hkufdiees739kmcm0-a.singapore-postgres.render.com
+POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
-POSTGRES_USER=ricepaper_db_user
-POSTGRES_PASSWORD=MxqO1SagCCVjR1SIyYTIglbENL3iJHPV
-POSTGRES_DB=ricepaper_db
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=password
+POSTGRES_DB=ricepaper
 
 JWT_SECRET=supersecretkey
 JWT_EXPIRES_IN=1d

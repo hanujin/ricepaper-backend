@@ -118,19 +118,48 @@ export class MessagesService {
       return senderCount === totalUsers - 1;
     }
 
-    // messages.service.ts
-    async checkAllWrittenTo(targetUserId: number): Promise<boolean> {
+    async getUsersWithAllWrittenStatus() {
+      // 1. 모든 유저와 모든 메시지를 한 번에 가져옵니다.
       const allUsers = await this.userRepo.find();
-      const senderIds = allUsers.map((u) => u.id).filter((id) => id !== targetUserId);
-
-      const messages = await this.messageRepo.find({
-        where: { receiver: { id: targetUserId } },
-        relations: ['sender'],
+      const allMessages = await this.messageRepo.find({
+        relations: ['sender', 'receiver'],
       });
-
-      const actualSenders = new Set(messages.map((msg) => msg.sender.id));
-      return senderIds.every((id) => actualSenders.has(id));
+  
+      // 2. 각 유저가 받은 메시지들을 효율적으로 찾기 위해 Map을 생성합니다.
+      const messagesByReceiver = new Map<number, Set<number>>();
+      for (const message of allMessages) {
+        // sender와 receiver가 존재하는지 확인하여 안정성 확보
+        if (message.receiver && message.sender) {
+          const receiverId = message.receiver.id;
+          if (!messagesByReceiver.has(receiverId)) {
+            messagesByReceiver.set(receiverId, new Set());
+          }
+          // non-null assertion (!)을 사용하여 TypeScript 에러 해결
+          messagesByReceiver.get(receiverId)!.add(message.sender.id);
+        }
+      }
+  
+      // 3. 각 유저에 대해 'allWritten' 상태를 계산합니다.
+      const usersWithStatus = allUsers.map((user) => {
+        // 이 유저를 제외한 모든 유저의 ID 목록
+        const requiredSenders = allUsers
+          .map((u) => u.id)
+          .filter((id) => id !== user.id);
+        
+        // 이 유저가 받은 메시지의 발신자 목록
+        const actualSenders = messagesByReceiver.get(user.id) || new Set();
+  
+        // 모든 필수 발신자가 메시지를 보냈는지 확인
+        const allWritten = requiredSenders.every((senderId) =>
+          actualSenders.has(senderId),
+        );
+  
+        return {
+          ...user,
+          allWritten,
+        };
+      });
+  
+      return usersWithStatus;
     }
-
-
 }

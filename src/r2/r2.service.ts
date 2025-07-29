@@ -1,37 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { ConfigService } from '@nestjs/config';
-import { v4 as uuid } from 'uuid';
+import * as crypto from 'crypto';
+import { extname } from 'path';
 
 @Injectable()
 export class R2Service {
-  private s3: S3Client;
-  private bucket: string;
-
-  constructor(private config: ConfigService) {
-    this.s3 = new S3Client({
-      region: 'auto',
-      endpoint: this.config.get('R2_ENDPOINT'),
-      credentials: {
-        accessKeyId: this.config.get<string>('R2_ACCESS_KEY_ID')!,
-        secretAccessKey: this.config.get<string>('R2_SECRET_ACCESS_KEY')!,
-    },
-    });
-    this.bucket = this.config.get<string>('R2_BUCKET_NAME')!;
-  }
+  private s3 = new S3Client({
+    region: 'auto',
+    endpoint: process.env.R2_ENDPOINT, 
+    credentials: {
+      accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+    }
+  });
 
   async uploadFile(file: Express.Multer.File): Promise<string> {
-    const key = `${uuid()}-${file.originalname}`;
+    const ext = extname(file.originalname);
+    const filename = `${crypto.randomUUID()}${ext}`;
+    
+    await this.s3.send(new PutObjectCommand({
+      Bucket: process.env.R2_BUCKET_NAME,
+      Key: filename,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+      ACL: 'public-read', // ⚠️ R2는 이거 무시할 수 있음, 퍼블릭 설정 필요
+    }));
 
-    await this.s3.send(
-      new PutObjectCommand({
-        Bucket: this.bucket,
-        Key: key,
-        Body: file.buffer,
-        ContentType: file.mimetype,
-      }),
-    );
-
-    return `${this.config.get('R2_ENDPOINT')}/${this.bucket}/${key}`;
+    const publicBaseUrl = process.env.R2_PUBLIC_URL;
+    return `${publicBaseUrl}/${filename}`;
   }
 }

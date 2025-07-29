@@ -14,16 +14,8 @@ export class UsersController {
   // 전체 유저 목록 조회 (ex: 롤링페이퍼 쓸 때 유저 리스트)
   @Get()
   async getAllUsers() {
-    const users = await this.usersService.findAll();
-
-    const usersWithStatus = await Promise.all(
-      users.map(async (user) => {
-        const hasAllMessages = await this.messagesService.checkAllWrittenTo(user.id);
-        return { ...user, allWritten: hasAllMessages };
-      })
-    );
-
-    return usersWithStatus;
+    // 최적화된 서비스 메소드를 호출하여 N+1 문제를 해결합니다.
+    return this.messagesService.getUsersWithAllWrittenStatus();
   }
 
   // 특정 유저 정보 조회 (ex: 유저 프로필)
