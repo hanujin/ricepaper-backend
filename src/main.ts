@@ -15,7 +15,11 @@ async function bootstrap() {
   SwaggerModule.setup('api-docs', app, document);
 
   app.enableCors({
-    origin: ['https://classfour.vercel.app'],
+    origin: [
+    'http://localhost:5174',
+    'http://localhost:3000',
+    'https://classfour.vercel.app'
+  ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
